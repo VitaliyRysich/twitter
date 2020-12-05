@@ -27,7 +27,7 @@ public class ServingWebContentApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        User admin = new User("adm","adm", true);
+        /*User admin = new User("adm","adm", true);
         admin.setRoles(new HashSet<>(
                 Arrays.asList(
                         Role.USER,
@@ -40,7 +40,7 @@ public class ServingWebContentApplication implements CommandLineRunner {
                 Arrays.asList(
                         Role.USER)
         ));
-        userRepo.save(user);
+        userRepo.save(user);*/
     }
 }
 
