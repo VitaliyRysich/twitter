@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -15,11 +16,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
-    @Autowired
-    private UserRepo userRepo;
+    private final UserRepo userRepo;
+    private final MailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    MailSender mailSender;
+    public UserService(UserRepo userRepo, MailSender mailSender, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
+        this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public boolean activateUser(String code) {
 
@@ -38,7 +44,13 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        return userRepo.findByUsername(userName);
+        User user = userRepo.findByUsername(userName);
+
+        if(user == null){
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        return user;
     }
 
     public boolean addUser(User user){
@@ -51,6 +63,7 @@ public class UserService implements UserDetailsService {
         user.setActive(true);
         user.setRoles(Collections.singleton(Role.USER));
         user.setActivationCode(UUID.randomUUID().toString());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepo.save(user);
 
@@ -108,7 +121,7 @@ public class UserService implements UserDetailsService {
         }
 
         if (!StringUtils.isEmpty(password)){
-            user.setPassword(password);
+            user.setPassword(passwordEncoder.encode(password));
         }
 
         userRepo.save(user);
